@@ -1,0 +1,36 @@
+name: Update Financial Data
+
+on:
+  schedule:
+    - cron: '0 16 * * *'   
+  workflow_dispatch:        
+
+jobs:
+  update-stock:
+    runs-on: ubuntu-latest  
+
+    steps:
+      - name: Checkout repo   
+        uses: actions/checkout@v3
+
+      - name: Set up Python   
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'  
+
+      - name: Install Dependencies YF   
+        run: |
+          pip install yfinance pandas
+
+      - name: Running Script   # This executes script and downloads the csv files
+        run: python Main_Stocks.py
+
+      - name: Running Script  2 # This executes script and downloads the csv files
+        run: python Historical Stock python code.py
+
+      - name: Commit and push changes   # saves the files and push to repository
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "Automated Updates"   
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # Token to authorize pushing to the repository
