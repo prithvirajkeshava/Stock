@@ -26,11 +26,19 @@ jobs:
         run: python Main_Stocks.py
 
       - name: Running Script  2 # This executes script and downloads the csv files
+<<<<<<< HEAD
         run: python Historical_Stocks.py
+=======
+        run: python Historical Stock python code.py
+>>>>>>> 9598787 (Initial Commit)
 
       - name: Commit and push changes   # saves the files and push to repository
         uses: EndBug/add-and-commit@v9
         with:
+<<<<<<< HEAD
           message: "Automated Updates"   
+=======
+          message: "Automated Upadates"   
+>>>>>>> 9598787 (Initial Commit)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # Token to authorize pushing to the repository
