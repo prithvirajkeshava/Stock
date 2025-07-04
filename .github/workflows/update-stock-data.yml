@@ -25,16 +25,24 @@ jobs:
       - name: Running Script   # This executes script and downloads the csv files
         run: python Main_Stocks.py
 
+ 
       - name: Running another script # This executes script and downloads the csv files
  
         run: python Historical_Stocks.py
+ 
+      - name: Running Script  2 # This executes script and downloads the csv files
+ 
+        run: python Historical_Stocks.py
+ 
+ 
 
         
       - name: Commit and push changes   # saves the files and push to repository
         uses: EndBug/add-and-commit@v9
         with:
  
-          message: "Automated Updates"   
  
+          message: "Automated Upadates"   
+  
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # Token to authorize pushing to the repository
