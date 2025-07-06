@@ -37,12 +37,11 @@ jobs:
  
 
         
-      - name: Commit and push changes   # saves the files and push to repository
-        uses: EndBug/add-and-commit@v9
+      - name: Upload Historical_Stocks.csv as Artifact
+        uses: actions/upload-artifact@v4
         with:
- 
- 
-          message: "Automated Upadates"   
+          name: Historical_Stocks
+          path: Historical_Stocks.csv 
   
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # Token to authorize pushing to the repository
