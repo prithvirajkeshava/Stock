@@ -1,7 +1,7 @@
 # Stock
 ## Details of This Project
 
-This repository is for the automation of Financial Stock Data US-listed stocks S&P 500 index (SPY).
+This repository automates US stock data for S&P 500 stocks.
 
 ### Contents
 
@@ -13,7 +13,7 @@ This repository is for the automation of Financial Stock Data US-listed stocks S
    - Reads the tickers from `Tickers_Codes.csv`.
    - Downloads the latest **Close Price** for each ticker.
    - Retrieves key financial indicators including:
-     - Market Capitalization (`marketCap`)
+     - Market Capitalisation (`marketCap`)
      - Price-to-Earnings Ratios (`trailingPE`, `forwardPE`)
      - Volatility (`beta`)
      - Earnings per Share (`trailingEps`)
@@ -45,7 +45,7 @@ This repository is for the automation of Financial Stock Data US-listed stocks S
 
 ### Automation via GitHub Actions
 
-This project utilises **GitHub Actions** for automatic every day updates at 16:00 UTC.  
+This project utilises **GitHub Actions** for automatic every day updates at 9:30 PM (IST) or 4:00 PM (UTC).  
 The scheduled workflow performs the following steps:
 
 - Checks the repository
