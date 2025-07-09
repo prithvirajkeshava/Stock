@@ -31,18 +31,19 @@ jobs:
       - name: Run Historical Stocks script
         run: python Historical_Stocks_gspread.py
 
- 
       - name: Upload Historical_Stocks.csv as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Historical_Stocks
           path: Historical_Stocks.csv 
-  
- 
+
       - name: Commit and push changes
         uses: EndBug/add-and-commit@v9
         with:
           message: "Automated Updates"
- 
+          add: '.'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up secrets
+        run: rm service_account.json
