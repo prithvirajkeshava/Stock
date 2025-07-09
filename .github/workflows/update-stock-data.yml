@@ -2,46 +2,47 @@ name: Update Financial Data
 
 on:
   schedule:
-    - cron: '0 16 * * *'   
-  workflow_dispatch:        
+    - cron: '0 16 * * *'   # Run daily at 16:00 UTC
+  workflow_dispatch:        # Allow manual trigger
 
 jobs:
   update-stock:
-    runs-on: ubuntu-latest  
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo   
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Python   
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'  
+          python-version: '3.12'
 
-      - name: Install Dependencies YF   
+      - name: Install dependencies
         run: |
-          pip install yfinance pandas
+          pip install yfinance pandas gspread oauth2client
 
-      - name: Running Script   # This executes script and downloads the csv files
+      - name: Write service account credentials
+        run: echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}" > service_account.json
+
+      - name: Run Main Stocks script
         run: python Main_Stocks.py
 
- 
-      - name: Running another script # This executes script and downloads the csv files
- 
-        run: python Historical_Stocks.py
- 
-      - name: Running Script  2 # This executes script and downloads the csv files
- 
-        run: python Historical_Stocks.py
- 
- 
+      - name: Run Historical Stocks script
+        run: python Historical_Stocks_gspread.py
 
-        
+ 
       - name: Upload Historical_Stocks.csv as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Historical_Stocks
           path: Historical_Stocks.csv 
   
+ 
+      - name: Commit and push changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "Automated Updates"
+ 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # Token to authorize pushing to the repository
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

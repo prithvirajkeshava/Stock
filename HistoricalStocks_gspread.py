@@ -1,0 +1,57 @@
+import yfinance as yf
+import pandas as pd
+from datetime import datetime
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+# === Setup Google Sheets credentials ===
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
+client = gspread.authorize(creds)
+
+# === Load tickers from Google Sheets ===
+ticker_sheet = client.open("Tickers_Codes").sheet1  # sheet1 = first tab
+ticker_records = ticker_sheet.get_all_records()
+tickers_df = pd.DataFrame(ticker_records)
+tickers = tickers_df["ticker"].dropna().tolist()
+
+# === Get today's date ===
+today = datetime.today().strftime('%Y-%m-%d')
+
+# === Download historical stock data ===
+df = yf.download(tickers, start="2015-01-02", end=today, interval="1d", auto_adjust=True)['Close']
+
+if df.empty:
+    print("No data available for today.")
+else:
+    df = df[tickers]  # Ensure correct column order
+    df.index.name = "Date"
+    df_combined = None
+
+    # === Try to load existing historical data from Google Sheets ===
+    try:
+        history_sheet = client.open("Historical_Stocks").sheet1
+        existing_data = history_sheet.get_all_values()
+        existing_df = pd.DataFrame(existing_data[1:], columns=existing_data[0])
+        existing_df.set_index("Date", inplace=True)
+        existing_df.index = pd.to_datetime(existing_df.index)
+        df.index = pd.to_datetime(df.index)
+
+        if today not in existing_df.index.strftime('%Y-%m-%d'):
+            df_combined = pd.concat([existing_df, df])
+            print("Today's data added.")
+        else:
+            df_combined = existing_df
+            print("Data for today already exists. No update.")
+    except Exception as e:
+        print("No existing historical sheet or error reading it:", e)
+        df_combined = df
+
+    # === Save back to Google Sheets ===
+    if df_combined is not None:
+        df_to_write = df_combined.copy()
+        df_to_write.reset_index(inplace=True)
+        history_sheet = client.open("Historical_Stocks").sheet1
+        history_sheet.clear()
+        history_sheet.update([df_to_write.columns.values.tolist()] + df_to_write.values.tolist())
+        print("Updated Historical_Stocks sheet.")
