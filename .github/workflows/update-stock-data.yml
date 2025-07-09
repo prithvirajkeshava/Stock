@@ -29,7 +29,7 @@ jobs:
         run: python Main_Stocks.py
 
       - name: Run Historical Stocks script
-        run: python Historical_Stocks_gspread.py
+        run: python HistoricalStocks_gspread.py
 
       - name: Upload Historical_Stocks.csv as Artifact
         uses: actions/upload-artifact@v4
