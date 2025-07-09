@@ -25,12 +25,26 @@ jobs:
       - name: Write service account credentials
         run: echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}" > service_account.json
 
+      - name:   Validate service_account.json (debug only)
+        run: |
+          echo "Content of service_account.json:"
+          cat service_account.json
+          echo "Validating JSON format..."
+          python -m json.tool service_account.json
+        #  Remove this step after confirming JSON is valid
+
       - name: Run Main Stocks script
         run: python Main_Stocks.py
 
       - name: Run Historical Stocks script
         run: python HistoricalStocks_gspread.py
-        
+
+      - name: Upload Historical_Stocks.csv as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Historical_Stocks
+          path: Historical_Stocks.csv 
+
       - name: Commit and push changes
         uses: EndBug/add-and-commit@v9
         with:
