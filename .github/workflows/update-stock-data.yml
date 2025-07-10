@@ -23,15 +23,14 @@ jobs:
           pip install yfinance pandas gspread oauth2client
 
       - name: Write service account credentials
-        run: echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}" | base64 -di > service_account.json
+        run: echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}" | base64 -d > service_account.json
 
-      - name:   Validate service_account.json (debug only)
+      # 🔍 Optional: Debug step to verify the key file is valid (remove after first success)
+      - name: Validate service_account.json (debug only)
         run: |
-          echo "Content of service_account.json:"
-          cat service_account.json
-          echo "Validating JSON format..."
+          echo "Validating service_account.json..."
           python -m json.tool service_account.json
-        #  Remove this step after confirming JSON is valid
+        # ⚠️ Remove or comment this step after first run to avoid printing sensitive data
 
       - name: Run Main Stocks script
         run: python Main_Stocks.py
@@ -43,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Historical_Stocks
-          path: Historical_Stocks.csv 
+          path: Historical_Stocks.csv
 
       - name: Commit and push changes
         uses: EndBug/add-and-commit@v9
@@ -53,5 +52,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Clean up secrets
-        run: rm service_account.json
+      - name: Clean up service account key
+        if: always()
+        run: |
+          shred -u service_account.json || rm -f service_account.json
