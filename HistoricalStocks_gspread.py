@@ -63,16 +63,19 @@ else:
 
     # === Upload to Google Sheets ===
     if df_combined is not None:
+    # Copy and reset index
         df_to_write = df_combined.copy()
         df_to_write.reset_index(inplace=True)
 
-    # Convert all values to string (including Timestamps and NaNs)
-        df_to_write = df_to_write.fillna("").astype(str)
+    # ✅ Convert all values in DataFrame (including Timestamps) to plain strings
+        df_to_write = df_to_write.applymap(lambda x: str(x) if pd.notnull(x) else "")
+
         try:
             history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
             history_sheet.clear()
             history_sheet.update([df_to_write.columns.values.tolist()] + df_to_write.values.tolist())
-            print(" Historical_Stocks sheet updated successfully.")
+            print("✅ Google Sheet updated successfully.")
         except Exception as e:
-            print(" Failed to upload to Google Sheets:", e)
+            print("❌ Failed to upload to Google Sheets:", e)
+
 
