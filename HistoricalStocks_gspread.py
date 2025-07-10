@@ -68,7 +68,10 @@ else:
         df_to_write.reset_index(inplace=True)
 
     # ✅ Convert all values in DataFrame (including Timestamps) to plain strings
-        df_to_write = df_to_write.applymap(lambda x: str(x) if pd.notnull(x) else "")
+        df_to_write.columns = df_to_write.columns.map(str)
+
+    # Convert all cell values to strings
+        df_to_write = df_to_write.astype(str)
 
         try:
             history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
