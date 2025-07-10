@@ -83,7 +83,8 @@ if df_combined is not None:
 
     # 🔒 FULL SANITIZATION to avoid Timestamp/NaN issues
     columns = [str(c) for c in df_to_write.columns]
-    rows = df_to_write.applymap(lambda x: str(x) if pd.notnull(x) else "").values.tolist()
+    rows = df_to_write.astype(str).values.tolist()
+
 
     try:
         history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
