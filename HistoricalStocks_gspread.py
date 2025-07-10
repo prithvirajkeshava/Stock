@@ -72,15 +72,22 @@ except Exception as e:
 # === Upload to Google Sheets ===
 if df_combined is not None:
     df_to_write = df_combined.copy()
+
+    # Reset index to bring "Date" into columns
     df_to_write.reset_index(inplace=True)
 
-    # 🔒 FULL SANITIZATION: convert everything to string
+    # Ensure column headers are strings
     df_to_write.columns = df_to_write.columns.map(str)
-    df_to_write = df_to_write.astype(str)
+
+    # Convert every single cell value to string (handles Timestamps, floats, NaNs)
+    df_to_write = df_to_write.applymap(lambda x: str(x) if pd.notnull(x) else "")
 
     try:
+        history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
         history_sheet.clear()
-        history_sheet.update([df_to_write.columns.tolist()] + df_to_write.values.tolist())
+        history_sheet.update(
+            [df_to_write.columns.tolist()] + df_to_write.values.tolist()
+        )
         print("✅ Sheet updated successfully.")
     except Exception as e:
         print("❌ Upload failed:", e)
