@@ -66,13 +66,13 @@ else:
         df_to_write = df_combined.copy()
         df_to_write.reset_index(inplace=True)
 
-        # Convert all values to string to avoid Timestamp serialization issues
-        df_to_write = df_to_write.astype(str)
-
+    # Convert all values to string (including Timestamps and NaNs)
+        df_to_write = df_to_write.fillna("").astype(str)
         try:
             history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
             history_sheet.clear()
             history_sheet.update([df_to_write.columns.values.tolist()] + df_to_write.values.tolist())
-            print("Updated Historical_Stocks sheet.")
+            print(" Historical_Stocks sheet updated successfully.")
         except Exception as e:
-            print("Failed to upload to Google Sheets:", e)
+            print(" Failed to upload to Google Sheets:", e)
+
