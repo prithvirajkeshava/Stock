@@ -34,45 +34,45 @@ else:
     df_combined = None
 
     try:
-        # === Try to load existing historical data ===
         history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
         existing_data = history_sheet.get_all_values()
 
+        # If sheet is empty or missing headers
         if not existing_data or not existing_data[0] or "Date" not in existing_data[0]:
-            print("Sheet exists but empty or malformed. Writing fresh.")
+            print("Sheet is empty or has no header. Initializing new history.")
             df_combined = df
         else:
             existing_df = pd.DataFrame(existing_data[1:], columns=existing_data[0])
             if "Date" not in existing_df.columns:
-                raise ValueError("No 'Date' column found in existing sheet.")
-
-            existing_df.set_index("Date", inplace=True)
-            existing_df.index = pd.to_datetime(existing_df.index)
-            df.index = pd.to_datetime(df.index)
-
-            if today not in existing_df.index.strftime('%Y-%m-%d'):
-                df_combined = pd.concat([existing_df, df])
-                print("Today's data added.")
+                print("Warning: 'Date' column not found. Initializing fresh.")
+                df_combined = df
             else:
-                df_combined = existing_df
-                print("Data for today already exists. No update.")
+                existing_df.set_index("Date", inplace=True)
+                existing_df.index = pd.to_datetime(existing_df.index)
+                df.index = pd.to_datetime(df.index)
 
+                if today not in existing_df.index.strftime('%Y-%m-%d'):
+                    df_combined = pd.concat([existing_df, df])
+                    print("Today's data added.")
+                else:
+                    df_combined = existing_df
+                    print("Data for today already exists. No update.")
     except Exception as e:
-        print("No existing historical sheet or error reading it:", e)
+        print("Error reading or accessing historical sheet:", e)
         df_combined = df
 
-    # === Save back to Google Sheets ===
+    # === Upload to Google Sheets ===
     if df_combined is not None:
-        # Create a copy for writing
         df_to_write = df_combined.copy()
-
-        # Reset index and convert all values to strings
         df_to_write.reset_index(inplace=True)
+
+        # Convert all values to string to avoid Timestamp serialization issues
         df_to_write = df_to_write.astype(str)
 
-        # Upload to Google Sheets
-        history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
-        history_sheet.clear()
-        history_sheet.update([df_to_write.columns.values.tolist()] + df_to_write.values.tolist())
-
-        print("Updated Historical_Stocks sheet.")
+        try:
+            history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
+            history_sheet.clear()
+            history_sheet.update([df_to_write.columns.values.tolist()] + df_to_write.values.tolist())
+            print("Updated Historical_Stocks sheet.")
+        except Exception as e:
+            print("Failed to upload to Google Sheets:", e)
