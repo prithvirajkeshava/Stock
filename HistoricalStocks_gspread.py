@@ -37,12 +37,11 @@ if not valid_tickers:
     print("No valid tickers found.")
     exit()
 
-# === Get today's date
+# === Get today's date ===
 today = datetime.today().strftime('%Y-%m-%d')
 
-# === Download full history for valid tickers
+# === Download full history for valid tickers ===
 df = yf.download(valid_tickers, start="2015-01-02", end=today, interval="1d", auto_adjust=True)['Close']
-
 if df.empty:
     print("No data downloaded.")
     exit()
@@ -51,7 +50,7 @@ df.index.name = "Date"
 df = df[valid_tickers]
 df_combined = None
 
-# === Try to load existing sheet data
+# === Try to load existing sheet data ===
 try:
     history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
     existing_data = history_sheet.get_all_values()
@@ -78,13 +77,13 @@ except Exception as e:
     print("Sheet not found or error reading it:", e)
     df_combined = df
 
-# === Upload final data to Google Sheets ===
+# === Upload to Google Sheets ===
 if df_combined is not None:
     df_to_write = df_combined.reset_index()
 
-    # 🔒 Convert ALL to strings (headers + values)
-    columns = [str(col) for col in df_to_write.columns]
-    rows = df_to_write.astype(str).values.tolist()
+    # 🔒 FULL SANITIZATION to avoid Timestamp/NaN issues
+    columns = [str(c) for c in df_to_write.columns]
+    rows = df_to_write.applymap(lambda x: str(x) if pd.notnull(x) else "").values.tolist()
 
     try:
         history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
