@@ -9,11 +9,18 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
 client = gspread.authorize(creds)
 
+# === Define your spreadsheet IDs ===
+TICKERS_SHEET_ID = "1KCKBgqszZAoJk_RYndRvndP0CwE548LcLJOA6A_PCEQ"            
+HISTORICAL_SHEET_ID = "15AbIBbwNGl6qThiZzxQuY6Dgk5UloEv5pUfIKlvGNDU"      
+
 # === Load tickers from Google Sheets ===
-ticker_sheet = client.open("Tickers_Codes").sheet1  # sheet1 = first tab
+ticker_sheet = client.open_by_key(TICKERS_SHEET_ID).sheet1
 ticker_records = ticker_sheet.get_all_records()
 tickers_df = pd.DataFrame(ticker_records)
 tickers = tickers_df["ticker"].dropna().tolist()
+
+# === Fix problematic ticker formats for yfinance ===
+tickers = [t.replace('.', '-') for t in tickers]
 
 # === Get today's date ===
 today = datetime.today().strftime('%Y-%m-%d')
@@ -30,7 +37,7 @@ else:
 
     # === Try to load existing historical data from Google Sheets ===
     try:
-        history_sheet = client.open("Historical_Stocks").sheet1
+        history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
         existing_data = history_sheet.get_all_values()
         existing_df = pd.DataFrame(existing_data[1:], columns=existing_data[0])
         existing_df.set_index("Date", inplace=True)
@@ -51,7 +58,7 @@ else:
     if df_combined is not None:
         df_to_write = df_combined.copy()
         df_to_write.reset_index(inplace=True)
-        history_sheet = client.open("Historical_Stocks").sheet1
+        history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
         history_sheet.clear()
         history_sheet.update([df_to_write.columns.values.tolist()] + df_to_write.values.tolist())
         print("Updated Historical_Stocks sheet.")
