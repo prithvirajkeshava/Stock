@@ -10,8 +10,8 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json",
 client = gspread.authorize(creds)
 
 # === Your spreadsheet IDs ===
-TICKERS_SHEET_ID = "1KCKBgqszZAoJk_RYndRvndP0CwE548LcLJOA6A_PCEQ"             
-HISTORICAL_SHEET_ID = "15AbIBbwNGl6qThiZzxQuY6Dgk5UloEv5pUfIKlvGNDU" 
+TICKERS_SHEET_ID = "1KCKBgqszZAoJk_RYndRvndP0CwE548LcLJOA6A_PCEQ"
+HISTORICAL_SHEET_ID = "15AbIBbwNGl6qThiZzxQuY6Dgk5UloEv5pUfIKlvGNDU"
 
 # === Load tickers from Google Sheets ===
 ticker_sheet = client.open_by_key(TICKERS_SHEET_ID).sheet1
@@ -63,10 +63,11 @@ else:
 
     # === Save back to Google Sheets ===
     if df_combined is not None:
-        # Reset index and convert entire DataFrame to string
-        df_to_write.reset_index(inplace=True)
+        # Create a copy for writing
+        df_to_write = df_combined.copy()
 
-        # Convert all values (including Timestamp, NaN, etc.) to strings safely
+        # Reset index and convert all values to strings
+        df_to_write.reset_index(inplace=True)
         df_to_write = df_to_write.astype(str)
 
         # Upload to Google Sheets
