@@ -1,26 +1,34 @@
-import pandas as pd               
-import yfinance as yf             
-from datetime import datetime   
-import os                      
+import pandas as pd
+import yfinance as yf
+from datetime import datetime
+import os
 
-tickers_df = pd.read_csv("Tickers_Codes.csv")                          
-tickers = tickers_df["ticker"].dropna().tolist()                 
-tickers_dict = {str(ticker): True for ticker in tickers}       
+# === Load and clean tickers ===
+tickers_df = pd.read_csv("Tickers_Codes.csv")
+tickers = tickers_df["ticker"].dropna().tolist()
+tickers = [ticker.replace('.', '-') for ticker in tickers]  # Fix for yfinance
+tickers_dict = {str(ticker): True for ticker in tickers}
 
- 
-# Gets a DataFrame with dates as index and tickers as columns
+# === Download latest closing prices ===
 df = yf.download(tickers, period="5d", interval="1d", auto_adjust=True)['Close']
-
 df = df.tail(1)
 
+# === Initialize data holder ===
 dow_stats = {}
 
-# fetch financial information
+# === Fetch financial info for each ticker ===
 for i in tickers_dict:
-    ticker_yf = yf.Ticker(i)        
-    temp = ticker_yf.info                      
-
+    ticker_yf = yf.Ticker(i)
     
+    try:
+        temp = ticker_yf.get_info()
+        if not temp:
+            print(f"[WARN] No info returned for {i}")
+            continue
+    except Exception as e:
+        print(f"[ERROR] Failed to get info for {i}: {e}")
+        continue
+
     attributes_of_interest = [
         "marketCap", "trailingPE", "forwardPE", "beta", "trailingEps",
         "industry", "sector", "fullTimeEmployees", "country", "ebitda",
@@ -28,42 +36,32 @@ for i in tickers_dict:
         "shortName", "trailingPegRatio"
     ]
 
-    # Create a filtered dictionary with only desired attributes
     filtered_data = {attr: temp.get(attr) for attr in attributes_of_interest}
-
-    # Convert to DataFrame with a single row
     ticker_info = pd.DataFrame([filtered_data])
-
-    # Add to main dictionary with ticker as key
     dow_stats[i] = ticker_info
 
-# Concatenate all individual ticker DataFrames into one
-# Creates a hierarchical index: ticker > row
-all_stats_info = pd.concat(dow_stats, keys=dow_stats.keys(), names=['ticker', 'Index'])
+# === Combine and save all stats ===
+if dow_stats:
+    all_stats_info = pd.concat(dow_stats, keys=dow_stats.keys(), names=['ticker', 'Index'])
+    all_stats_info.to_csv("Stock_Info.csv")
+else:
+    print("[WARN] No financial data was saved.")
 
-#   Save the overall financial information
-file_info_name = "Stock_Info.csv"
-all_stats_info.to_csv(file_info_name)
-
-#  Save the closing prices to another file
+# === Save closing prices ===
 file_name = "Main_Actual_Stock.csv"
 
 if not os.path.exists(file_name) or os.stat(file_name).st_size == 0:
-    # If the file doesn't exist or is empty, save the complete df
-    df.to_csv(file_name, index=True)  # The date index is saved as "Date" column
+    df.to_csv(file_name, index=True)
     print("File created with initial data.")
 else:
-    # If the file already exists, check if the date has been saved
     df_existing = pd.read_csv(file_name, index_col="Date")
     df_existing.index = pd.to_datetime(df_existing.index)
 
-    new_date = df.index[0]  # Date of the new data
+    new_date = df.index[0]
 
     if new_date not in df_existing.index:
-        # If the new date isn't in the existing file, append it
         df_final = pd.concat([df_existing, df])
         df_final.to_csv(file_name)
-        print(" Data updated.")
+        print("Data updated.")
     else:
-        # If the date already exists, do nothing
-        pass
+        print("Date already exists — no update needed.")
