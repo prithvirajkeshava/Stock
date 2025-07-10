@@ -63,17 +63,15 @@ else:
 
     # === Save back to Google Sheets ===
     if df_combined is not None:
-        df_to_write = df_combined.copy()
+        # Reset index and convert entire DataFrame to string
         df_to_write.reset_index(inplace=True)
 
-        # Convert datetime to string
-        df_to_write["Date"] = df_to_write["Date"].astype(str)
+        # Convert all values (including Timestamp, NaN, etc.) to strings safely
+        df_to_write = df_to_write.astype(str)
 
-        # Avoid sending non-serializable objects
-        df_to_write = df_to_write.fillna("").astype(str)
-
-        # Upload
+        # Upload to Google Sheets
         history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
         history_sheet.clear()
         history_sheet.update([df_to_write.columns.values.tolist()] + df_to_write.values.tolist())
+
         print("Updated Historical_Stocks sheet.")
