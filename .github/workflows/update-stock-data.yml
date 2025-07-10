@@ -23,7 +23,7 @@ jobs:
           pip install yfinance pandas gspread oauth2client
 
       - name: Write service account credentials
-        run: echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}" | base64 -d > service_account.json
+        run: echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}" | base64 --decode > service_account.json
 
       - name:   Validate service_account.json (debug only)
         run: |
