@@ -4,86 +4,79 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# === Google Sheets auth ===
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+# === Setup Google Sheets credentials ===
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive"
+]
 creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
 client = gspread.authorize(creds)
 
-# === Spreadsheet IDs ===
+# === Your spreadsheet IDs ===
 TICKERS_SHEET_ID = "1KCKBgqszZAoJk_RYndRvndP0CwE548LcLJOA6A_PCEQ"
 HISTORICAL_SHEET_ID = "15AbIBbwNGl6qThiZzxQuY6Dgk5UloEv5pUfIKlvGNDU"
 
-# === Load tickers ===
+# === Load tickers from Google Sheets ===
 ticker_sheet = client.open_by_key(TICKERS_SHEET_ID).sheet1
-ticker_records = ticker_sheet.get_all_records()
-tickers_df = pd.DataFrame(ticker_records)
+tickers_df = pd.DataFrame(ticker_sheet.get_all_records())
 tickers = tickers_df["ticker"].dropna().tolist()
-tickers = [ticker.replace('.', '-') for ticker in tickers]
+tickers = [t.replace('.', '-') for t in tickers]
 
-# === Filter out tickers that break yfinance ===
+# === Filter valid tickers ===
 valid_tickers = []
 for t in tickers:
     try:
         if not yf.Ticker(t).history(period="1d").empty:
             valid_tickers.append(t)
-    except Exception:
+    except:
         print(f"[WARN] Skipping invalid ticker: {t}")
 
-# === Get data ===
+# === Download historical data ===
 today = datetime.today().strftime('%Y-%m-%d')
 df = yf.download(valid_tickers, start="2015-01-02", end=today, interval="1d", auto_adjust=True)['Close']
-
 if df.empty:
-    print("No stock data found.")
+    print("No data available.")
     exit()
 
 df = df[valid_tickers]
 df.index.name = "Date"
 df_combined = None
 
-# === Load or init historical data ===
+# === Load or initialize sheet data ===
 try:
     history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
     existing_data = history_sheet.get_all_values()
 
     if not existing_data or not existing_data[0] or "Date" not in existing_data[0]:
-        print("[INFO] Sheet is empty or malformed. Initializing.")
+        print("Empty or malformed sheet. Initializing fresh.")
         df_combined = df
     else:
         existing_df = pd.DataFrame(existing_data[1:], columns=existing_data[0])
         if "Date" not in existing_df.columns:
-            raise ValueError("No 'Date' column in existing data.")
-
+            raise ValueError("Missing 'Date' column.")
         existing_df.set_index("Date", inplace=True)
         existing_df.index = pd.to_datetime(existing_df.index)
         df.index = pd.to_datetime(df.index)
 
         if today not in existing_df.index.strftime('%Y-%m-%d'):
             df_combined = pd.concat([existing_df, df])
-            print("Added today's data.")
+            print("Today's data added.")
         else:
             df_combined = existing_df
-            print("No update needed.")
-
+            print("Today's data already exists.")
 except Exception as e:
-    print("No existing historical sheet or error reading it:", e)
+    print("No existing sheet or error reading it:", e)
     df_combined = df
 
-# === Upload to Google Sheets ===
+# === Prepare and upload ===
 if df_combined is not None:
-    df_to_write = df_combined.copy()
+    df_to_write = df_combined.reset_index()
 
-    # Reset index to bring "Date" into columns
-    df_to_write.reset_index(inplace=True)
-
-    # Ensure column headers are strings
+    # 💥 This part solves your error completely
     df_to_write.columns = df_to_write.columns.map(str)
-
-    # Convert every single cell value to string (handles Timestamps, floats, NaNs)
-    df_to_write = df_to_write.applymap(lambda x: str(x) if pd.notnull(x) else "")
+    df_to_write = df_to_write.astype(str)
 
     try:
-        history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
         history_sheet.clear()
         history_sheet.update(
             [df_to_write.columns.tolist()] + df_to_write.values.tolist()
