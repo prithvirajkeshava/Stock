@@ -58,7 +58,9 @@ else:
     if df_combined is not None:
         df_to_write = df_combined.copy()
         df_to_write.reset_index(inplace=True)
+        df_to_write["Date"] = df_to_write["Date"].astype(str)  # <-- FIX HERE
         history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
         history_sheet.clear()
         history_sheet.update([df_to_write.columns.values.tolist()] + df_to_write.values.tolist())
+
         print("Updated Historical_Stocks sheet.")
