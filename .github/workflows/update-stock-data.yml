@@ -25,27 +25,33 @@ jobs:
       - name: Write service account credentials
         run: echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}" | base64 -d > service_account.json
 
-
-
       - name: Run Main Stocks script
         run: python Main_Stocks.py
 
       - name: Run Historical Stocks script
         run: python HistoricalStocks_gspread.py
 
-      - name: Upload Historical_Stocks.csv as Artifact
+      - name: Upload fallback Historical_Stocks.csv as Artifact (if created)
         uses: actions/upload-artifact@v4
         with:
           name: Historical_Stocks
           path: Historical_Stocks.csv
+        if: always()  # Upload even if script fails
 
-      - name: Commit and push changes
+      - name: Remove service_account.json to prevent leak
+        run: rm -f service_account.json
+
+      - name: Commit and push changes (safe)
         uses: EndBug/add-and-commit@v9
         with:
           message: "Automated Updates"
-          add: '.'
+          add: |
+            Main_Actual_Stock.csv
+            Stock_Info.csv
+            update-stock-data.yml
+            Main_Stocks.py
+            HistoricalStocks_gspread.py
+            Tickers_Codes.csv
+            README.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Clean up secrets
-        run: rm service_account.json
