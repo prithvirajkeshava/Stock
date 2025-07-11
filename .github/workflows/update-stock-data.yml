@@ -47,7 +47,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Clean up service account key
-        if: always()
-        run: |
-          shred -u service_account.json || rm -f service_account.json
+      - name: Clean up secrets
+        run: rm service_account.json
