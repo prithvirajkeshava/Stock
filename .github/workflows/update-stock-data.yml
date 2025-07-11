@@ -45,13 +45,7 @@ jobs:
         uses: EndBug/add-and-commit@v9
         with:
           message: "Automated Updates"
-          add: |
-            Main_Actual_Stock.csv
-            Stock_Info.csv
-            update-stock-data.yml
-            Main_Stocks.py
-            HistoricalStocks_gspread.py
-            Tickers_Codes.csv
-            README.md
+          add: .
+          pull: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
