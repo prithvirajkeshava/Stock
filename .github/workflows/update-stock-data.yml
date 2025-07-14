@@ -2,16 +2,18 @@ name: Update Financial Data
 
 on:
   schedule:
-    - cron: '0 16 * * *'   # Run daily at 16:00 UTC
-  workflow_dispatch:        # Allow manual trigger
+    - cron: '0 16 * * *'   # Daily at 16:00 UTC
+  workflow_dispatch:        # Manual trigger
 
 jobs:
   update-stock:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repo with full history
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Needed for proper git push/pull
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -31,21 +33,33 @@ jobs:
       - name: Run Historical Stocks script
         run: python HistoricalStocks_gspread.py
 
-      - name: Upload fallback Historical_Stocks.csv as Artifact (if created)
+      - name: Upload Historical_Stocks.csv as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Historical_Stocks
           path: Historical_Stocks.csv
-        if: always()  # Upload even if script fails
+          if-no-files-found: warn
 
-      - name: Remove service_account.json to prevent leak
-        run: rm -f service_account.json
+      - name: Ensure git remote is set
+        run: |
+          git remote remove origin || true
+          git remote add origin https://github.com/${{ github.repository }}
 
       - name: Commit and push changes (safe)
         uses: EndBug/add-and-commit@v9
         with:
           message: "Automated Updates"
-          add: .
+          add: |
+            Main_Actual_Stock.csv
+            Stock_Info.csv
+            update-financial-data.yml
+            Main_Stocks.py
+            HistoricalStocks_gspread.py
+            Tickers_Codes.csv
+            README.md
           pull: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up secrets
+        run: rm service_account.json
