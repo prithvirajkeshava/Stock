@@ -94,7 +94,7 @@ def update_sheet_in_chunks(sheet, df, chunk_size=500):
             sheet.update(cell_range, chunk)
             sleep(1)  # Avoid hitting API limits
         except Exception as e:
-            print(f"❌ Failed to upload chunk {start_row}-{start_row + len(chunk) - 1}: {e}")
+            print(f" Failed to upload chunk {start_row}-{start_row + len(chunk) - 1}: {e}")
             raise
 
 
@@ -106,8 +106,8 @@ if df_combined is not None:
     try:
         history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
         update_sheet_in_chunks(history_sheet, df_to_write, chunk_size=500)
-        print("✅ Google Sheet updated successfully in chunks.")
+        print(" Google Sheet updated successfully in chunks.")
     except Exception as e:
-        print("❌ Failed to upload to Google Sheets:", e)
+        print(" Failed to upload to Google Sheets:", e)
         df_to_write.to_csv("Historical_Stocks.csv", index=False)
-        print("📄 Fallback saved to Historical_Stocks.csv")
+        print(" Fallback saved to Historical_Stocks.csv")
