@@ -81,18 +81,18 @@ def update_sheet_in_chunks(sheet, df, chunk_size=500, max_retries=3):
     first_chunk = data[:chunk_size]
     try:
         print("[UPLOAD] Verifying upload with first chunk...")
-        sheet.update(values=first_chunk, range_name="A1:")
+        sheet.update(values=first_chunk, range_name="A1")  # ✅ FIXED
     except Exception as e:
         print("❌ First chunk upload failed. Aborting:", e)
         raise
 
     # Clear only after confirming first chunk works
     sheet.clear()
-    sheet.update(values=first_chunk, range_name="A1:")
+    sheet.update(values=first_chunk, range_name="A1")  # ✅ FIXED
 
     for i in range(chunk_size, len(data), chunk_size):
         chunk = data[i:i+chunk_size]
-        cell_range = f"A{i+1}:"
+        cell_range = f"A{i+1}"  # ✅ FIXED
         for attempt in range(1, max_retries + 1):
             try:
                 print(f"[UPLOAD] Uploading rows {i+1} to {i+len(chunk)}...")
@@ -104,7 +104,7 @@ def update_sheet_in_chunks(sheet, df, chunk_size=500, max_retries=3):
                 if attempt == max_retries:
                     raise
                 sleep(2)
-
+                
 # === Final Upload ===
 if df_combined is not None:
     df_to_write = df_combined.reset_index()

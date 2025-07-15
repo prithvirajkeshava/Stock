@@ -52,7 +52,7 @@ jobs:
           add: |
             Main_Actual_Stock.csv
             Stock_Info.csv
-            update-financial-data.yml
+            update-stock-data.yml
             Main_Stocks.py
             HistoricalStocks_gspread.py
             Tickers_Codes.csv
