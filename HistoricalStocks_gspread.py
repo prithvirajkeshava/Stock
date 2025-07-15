@@ -21,9 +21,9 @@ HISTORICAL_SHEET_ID = "15AbIBbwNGl6qThiZzxQuY6Dgk5UloEv5pUfIKlvGNDU"
 ticker_sheet = client.open_by_key(TICKERS_SHEET_ID).sheet1
 tickers_df = pd.DataFrame(ticker_sheet.get_all_records())
 tickers = tickers_df["ticker"].dropna().tolist()
-tickers = [t.replace('.', '-') for t in tickers]  # Convert BRK.B → BRK-B
+tickers = [t.replace('.', '-') for t in tickers]  # e.g. BRK.B → BRK-B
 
-# === Filter out bad tickers ===
+# === Filter out tickers with no data ===
 valid_tickers = []
 for t in tickers:
     try:
@@ -35,14 +35,13 @@ for t in tickers:
         print(f"[WARN] Failed to download {t}. Skipping.")
 
 if not valid_tickers:
-    print("No valid tickers found.")
+    print("No valid tickers found. Exiting.")
     exit()
 
-# === Get today's date ===
+# === Download historical stock data ===
 today = datetime.today().strftime('%Y-%m-%d')
-
-# === Download full history for valid tickers ===
 df = yf.download(valid_tickers, start="2015-01-02", end=today, interval="1d", auto_adjust=True)['Close']
+
 if df.empty:
     print("No data downloaded.")
     exit()
@@ -51,19 +50,16 @@ df.index.name = "Date"
 df = df[valid_tickers]
 df_combined = None
 
-# === Try to load existing sheet data ===
+# === Try to load existing historical data from sheet ===
 try:
-    history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
-    existing_data = history_sheet.get_all_values()
+    sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
+    values = sheet.get_all_values()
 
-    if not existing_data or not existing_data[0] or "Date" not in existing_data[0]:
+    if not values or not values[0] or "Date" not in values[0]:
         print("[INFO] Sheet empty or malformed. Starting fresh.")
         df_combined = df
     else:
-        existing_df = pd.DataFrame(existing_data[1:], columns=existing_data[0])
-        if "Date" not in existing_df.columns:
-            raise ValueError("No 'Date' column in existing sheet.")
-
+        existing_df = pd.DataFrame(values[1:], columns=values[0])
         existing_df.set_index("Date", inplace=True)
         existing_df.index = pd.to_datetime(existing_df.index)
         df.index = pd.to_datetime(df.index)
@@ -73,47 +69,51 @@ try:
             print("[INFO] Appended new data.")
         else:
             df_combined = existing_df
-            print("[INFO] Today's data already exists. No update.")
+            print("[INFO] Data for today already exists. No update.")
 except Exception as e:
     print("[WARN] Sheet not found or error reading it:", e)
     df_combined = df
 
-
-# === Function: Chunked Sheet Update ===
+# === Chunked upload helper ===
 def update_sheet_in_chunks(sheet, df, chunk_size=500, max_retries=3):
-    """Update large Google Sheets in chunks with retry logic."""
-    sheet.clear()
     data = [df.columns.tolist()] + df.astype(str).values.tolist()
 
-    for i in range(0, len(data), chunk_size):
-        chunk = data[i:i+chunk_size]
-        start_row = i + 1
-        cell_range = f"A{start_row}:"
+    first_chunk = data[:chunk_size]
+    try:
+        print("[UPLOAD] Verifying upload with first chunk...")
+        sheet.update(values=first_chunk, range_name="A1:")
+    except Exception as e:
+        print("❌ First chunk upload failed. Aborting:", e)
+        raise
 
+    # Clear only after confirming first chunk works
+    sheet.clear()
+    sheet.update(values=first_chunk, range_name="A1:")
+
+    for i in range(chunk_size, len(data), chunk_size):
+        chunk = data[i:i+chunk_size]
+        cell_range = f"A{i+1}:"
         for attempt in range(1, max_retries + 1):
             try:
-                print(f"[UPLOAD] Uploading rows {start_row} to {start_row + len(chunk) - 1} (Attempt {attempt})...")
+                print(f"[UPLOAD] Uploading rows {i+1} to {i+len(chunk)}...")
                 sheet.update(values=chunk, range_name=cell_range)
                 sleep(1)
-                break  # Success, move to next chunk
+                break
             except Exception as e:
-                print(f" Attempt {attempt} failed: {e}")
+                print(f"❌ Failed to upload chunk {i+1}-{i+len(chunk)} (Attempt {attempt}):", e)
                 if attempt == max_retries:
                     raise
-                sleep(2)  # Wait before retry
+                sleep(2)
 
-
-
-# === Upload to Google Sheets or Fallback to CSV ===
+# === Final Upload ===
 if df_combined is not None:
     df_to_write = df_combined.reset_index()
-    df_to_write.columns = [str(c) for c in df_to_write.columns]  # Sanitize column names
-
     try:
-        history_sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
-        update_sheet_in_chunks(history_sheet, df_to_write, chunk_size=500)
-        print(" Google Sheet updated successfully in chunks.")
+        sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
+        update_sheet_in_chunks(sheet, df_to_write)
+        print("✅ Upload to Google Sheets successful.")
     except Exception as e:
-        print(" Failed to upload to Google Sheets:", e)
-        df_to_write.to_csv("Historical_Stocks.csv", index=False)
-        print(" Fallback saved to Historical_Stocks.csv")
+        print("❌ Failed to upload to Google Sheets:", e)
+        fallback_path = "Historical_Stocks.csv"
+        df_to_write.to_csv(fallback_path, index=False)
+        print(f"[📄] Fallback saved to {fallback_path}")
