@@ -80,8 +80,8 @@ except Exception as e:
 
 
 # === Function: Chunked Sheet Update ===
-def update_sheet_in_chunks(sheet, df, chunk_size=500):
-    """Update large Google Sheets in chunks."""
+def update_sheet_in_chunks(sheet, df, chunk_size=500, max_retries=3):
+    """Update large Google Sheets in chunks with retry logic."""
     sheet.clear()
     data = [df.columns.tolist()] + df.astype(str).values.tolist()
 
@@ -89,13 +89,19 @@ def update_sheet_in_chunks(sheet, df, chunk_size=500):
         chunk = data[i:i+chunk_size]
         start_row = i + 1
         cell_range = f"A{start_row}:"
-        print(f"[UPLOAD] Uploading rows {start_row} to {start_row + len(chunk) - 1}...")
-        try:
-            sheet.update(cell_range, chunk)
-            sleep(1)  # Avoid hitting API limits
-        except Exception as e:
-            print(f" Failed to upload chunk {start_row}-{start_row + len(chunk) - 1}: {e}")
-            raise
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                print(f"[UPLOAD] Uploading rows {start_row} to {start_row + len(chunk) - 1} (Attempt {attempt})...")
+                sheet.update(values=chunk, range_name=cell_range)
+                sleep(1)
+                break  # Success, move to next chunk
+            except Exception as e:
+                print(f" Attempt {attempt} failed: {e}")
+                if attempt == max_retries:
+                    raise
+                sleep(2)  # Wait before retry
+
 
 
 # === Upload to Google Sheets or Fallback to CSV ===
