@@ -10,9 +10,8 @@ This repository automates US stock data for S&P 500 stocks.
 
 2. **Main_Stock.py**  
    Functions of this file:
-   - Reads the tickers from `Tickers_Codes.csv`.
-   - Downloads the latest **Close Price** for each ticker.
-   - Retrieves key financial indicators including:
+   This file reads the tickers from `Tickers_Codes.csv` and downloads the latest **Close Price** for each ticker.
+   It also retrieves key financial indicators including:
      - Market Capitalisation (`marketCap`)
      - Price-to-Earnings Ratios (`trailingPE`, `forwardPE`)
      - Volatility (`beta`)
