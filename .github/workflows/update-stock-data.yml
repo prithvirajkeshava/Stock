@@ -40,10 +40,10 @@ jobs:
           path: Historical_Stocks.csv
           if-no-files-found: warn
 
-      - name: Ensure git remote is set
+      - name: Ensure git remote is set with auth
         run: |
           git remote remove origin || true
-          git remote add origin https://github.com/${{ github.repository }}
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
       - name: Commit and push changes (safe)
         uses: EndBug/add-and-commit@v9
