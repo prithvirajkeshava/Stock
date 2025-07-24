@@ -28,12 +28,12 @@ jobs:
         run: echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}" | base64 -d > service_account.json
 
       - name: Run Main Stocks script
-        run: python Main_Stocks.py
+        run: python scripts/Main_Stocks.py
 
       - name: Run Historical Stocks script
-        run: python HistoricalStocks_gspread.py
+        run: python scripts/HistoricalStocks_gspread.py
 
-      - name: Upload Historical_Stocks.csv as Artifact
+      - name: Upload fallback Historical_Stocks.csv as artifact (if script fallback used it)
         uses: actions/upload-artifact@v4
         with:
           name: Historical_Stocks
@@ -50,12 +50,11 @@ jobs:
         with:
           message: "Automated Updates"
           add: |
-            Main_Actual_Stock.csv
-            Stock_Info.csv
-            update-stock-data.yml
-            Main_Stocks.py
-            HistoricalStocks_gspread.py
-            Tickers_Codes.csv
+            data/processed/Main_Actual_Stock.csv
+            data/processed/Stock_Info.csv
+            scripts/Main_Stocks.py
+            scripts/HistoricalStocks_gspread.py
+            data/raw/Tickers_Codes.csv
             README.md
           pull: true
         env:
