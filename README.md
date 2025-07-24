@@ -10,7 +10,7 @@ This repository automates US stock data for S&P 500 stocks.
 
 2. **scripts/Main_Stock.py**  
    Functions of this file:
-   This file reads the tickers from `Tickers_Codes.csv` and downloads the latest **Close Price** for each ticker.
+   This file reads the tickers from `Tickers_Codes.csv` and downloads the **Stock Info** for each ticker.
    It also retrieves key financial indicators including:
      - Market Capitalisation (`marketCap`)
      - Price-to-Earnings Ratios (`trailingPE`, `forwardPE`)
@@ -28,7 +28,6 @@ This repository automates US stock data for S&P 500 stocks.
      - Company Name (`shortName`)
      - PEG Ratio (`trailingPegRatio`) 
    - Saves this data into two separate files:
-     - `Main_Actual_Stock.csv` → latest closing prices.
      - `Stock_Info.csv` → financial fundamentals.
 
 3. **scripts/HistoricalStocks_gspread.py**
@@ -48,8 +47,7 @@ This repository automates US stock data for S&P 500 stocks.
    - Company name
    - Sector
 
-### Generated files
-7. **data/processed/Stock_Info.csv** and **data/processed/Main_Actual_Stock.csv**
+8. **data/processed/Stock_Info.csv**
    These files are generated after execution of `Main_Stocks.py`.
    `Stocks_Info.csv` contains information about the ticker.
    `Main_Actual_Stock.csv` contains information about the ClosePrice of the tickers.
@@ -63,3 +61,4 @@ The scheduled workflow performs the following steps:
 - Installs dependencies (`yfinance`, `pandas`,`gspread`,`oauth2client`)
 - Executes the `Main_Stocks.py` and `HistoricalStocks_gspread.py` script
 - Commits and pushes the updated data to the repository or Google Drive
+- Create PowerBI Dashboards etc
