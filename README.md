@@ -2,7 +2,7 @@
 ## Project Details
 
 This repository automates US stock data for S&P 500 stocks and can be used for PowerBI Visualisation
-[![PDF Preview](./powerbi/Preview.png)](./powerbi/Economic Health.pdf)
+[![PDF Preview](./powerbi/preview-thumbnail.png)](./powerbi/Economic Health.pdf)
 
 ### Contents
 
