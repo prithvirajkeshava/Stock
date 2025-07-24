@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repo with full history
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Needed for proper git push/pull
+          fetch-depth: 0  # Needed for proper git pull
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -22,7 +22,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install yfinance pandas gspread oauth2client
+          pip install -r requirements.txt
 
       - name: Write service account credentials
         run: echo "${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}" | base64 -d > service_account.json
@@ -33,14 +33,14 @@ jobs:
       - name: Run Historical Stocks script
         run: python scripts/HistoricalStocks_gspread.py
 
-      - name: Upload fallback Historical_Stocks.csv as artifact (if script fallback used it)
+      - name: Upload fallback Historical_Stocks.csv as artifact (if fallback was triggered)
         uses: actions/upload-artifact@v4
         with:
           name: Historical_Stocks
           path: Historical_Stocks.csv
           if-no-files-found: warn
 
-      - name: Ensure git remote is set with auth
+      - name: Ensure git remote is set with authentication
         run: |
           git remote remove origin || true
           git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
