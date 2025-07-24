@@ -1,7 +1,8 @@
 # Stock Automation
 ## Project Details
 
-This repository automates US stock data for S&P 500 stocks.
+This repository automates US stock data for S&P 500 stocks and can be used for PowerBI Visualisation
+[![PDF Preview](./images/pdf-thumbnail.png)](./powerbi/Economic Health.pdf)
 
 ### Contents
 
