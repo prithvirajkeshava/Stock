@@ -5,10 +5,10 @@ This repository automates US stock data for S&P 500 stocks.
 
 ### Contents
 
-1. **Tickers_Codes.csv**  
+1. **data/raw/Tickers_Codes.csv**  
    CSV File which contains all Tickers from S&P 500.
 
-2. **Main_Stock.py**  
+2. **scripts/Main_Stock.py**  
    Functions of this file:
    This file reads the tickers from `Tickers_Codes.csv` and downloads the latest **Close Price** for each ticker.
    It also retrieves key financial indicators including:
@@ -31,25 +31,25 @@ This repository automates US stock data for S&P 500 stocks.
      - `Main_Actual_Stock.csv` → latest closing prices.
      - `Stock_Info.csv` → financial fundamentals.
 
-3. **HistoricalStocks_gspread.py**
+3. **scripts/HistoricalStocks_gspread.py**
    This file reads `Tickers_Codes.csv` from Github and generates the csv file in your Google Drive.  
    Contains the **last 10 years of daily Close Price data** for all tickers in `Tickers_Codes.csv`, should be used via using Google Service account and folder in Drive with all credentials etc.
 
 ### Other files
-4. **Historical_Stocks.py**
+4. **scripts/Historical_Stocks.py**
    This file reads `Tickers_Codes.csv` [saved in the Google drive of your folder] and generated a csv file containing the **last 10 years of daily Close Price data** for all tickers in `Tickers_Codes.csv`, [Can be used for manual refresh in some Google Folder, but not suitable for Github Actions as the files downloaded are >100MB].
 
-6. **Countries with Flags URL.csv**
+6. **data/raw/Countries with Flags URL.csv**
    Contains Flags of all countries with URL. Used for PowerBI
 
-7. **Tickers Info.xlsx**  
+7. **data/raw/Tickers Info.xlsx**  
    An Excel file with table of S&P 500 components from Wikipedia, including:
    - Ticker symbol
    - Company name
    - Sector
 
 ### Generated files
-7. **Stock_Info.csv** and **Main_Actual_Stock.csv**
+7. **data/processed/Stock_Info.csv** and **data/processed/Main_Actual_Stock.csv**
    These files are generated after execution of `Main_Stocks.py`.
    `Stocks_Info.csv` contains information about the ticker.
    `Main_Actual_Stock.csv` contains information about the ClosePrice of the tickers.
