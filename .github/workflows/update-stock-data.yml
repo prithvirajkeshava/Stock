@@ -57,6 +57,8 @@ jobs:
             data/raw/Tickers_Codes.csv
             README.md
           pull: true
+          push: true
+          fetch: --tags --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
