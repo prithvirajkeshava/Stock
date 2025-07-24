@@ -53,7 +53,7 @@ if not valid_tickers:
 
 # === Download historical stock data ===
 today = datetime.today().strftime('%Y-%m-%d')
-df = yf.download(valid_tickers, start="2024-01-02", end=today, interval="1d", auto_adjust=True)['Close']
+df = yf.download(valid_tickers, start="2025-01-01", end=today, interval="1d", auto_adjust=True)['Close']
 
 if df.empty:
     print("No data downloaded.")
