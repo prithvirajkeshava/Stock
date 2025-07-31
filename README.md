@@ -63,3 +63,5 @@ The scheduled workflow performs the following steps:
 - Executes the `Main_Stocks.py` and `HistoricalStocks_gspread.py` script
 - Commits and pushes the updated data to the repository or Google Drive
 - Create PowerBI Dashboards etc
+
+Note!!!: Please do not forget to create Google Service Account and Give access to the Drive. Be careful of the formats. Also Add Secerts into the drive link i.e [![PDF Preview](./images/image.png)]. When copy pasting service_key, be careful not to upload it to the drive. Convert it to base64 and then paste in Github secerts. Other drive links can we pasted as it is. 
