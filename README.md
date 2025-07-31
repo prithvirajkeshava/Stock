@@ -33,7 +33,8 @@ This repository automates US stock data for S&P 500 stocks and can be used for P
 
 3. **scripts/HistoricalStocks_gspread.py**
    This file reads `Tickers_Codes.csv` from Github and generates the csv file in your Google Drive.  
-   Contains the **last 10 years of daily Close Price data** for all tickers in `Tickers_Codes.csv`, should be used via using Google Service account and folder in Drive with all credentials etc.
+   Contains the **last 10 years of daily Close Price data** for all tickers in `Tickers_Codes.csv`, should be used via using Google Service account and folder in Drive with all credentials etc.[![PDF Preview](./images/H.png)]
+
 
 ### Other files
 4. **scripts/Historical_Stocks.py**
