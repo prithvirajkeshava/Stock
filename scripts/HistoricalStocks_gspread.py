@@ -6,6 +6,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from time import sleep
 import time
 import sys
+import os 
 
 # === Setup Google Sheets credentials ===
 scope = [
@@ -16,8 +17,11 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json",
 client = gspread.authorize(creds)
 
 # === Google Sheet IDs ===
-TICKERS_SHEET_ID = "1KCKBgqszZAoJk_RYndRvndP0CwE548LcLJOA6A_PCEQ"
-HISTORICAL_SHEET_ID = "15AbIBbwNGl6qThiZzxQuY6Dgk5UloEv5pUfIKlvGNDU"
+#TICKERS_SHEET_ID = "1KCKBgqszZAoJk_RYndRvndP0CwE548LcLJOA6A_PCEQ"
+#HISTORICAL_SHEET_ID = "15AbIBbwNGl6qThiZzxQuY6Dgk5UloEv5pUfIKlvGNDU"
+
+TICKERS_SHEET_ID = os.environ.get("TICKERS_SHEET_ID")
+HISTORICAL_SHEET_ID = os.environ.get("HISTORICAL_SHEET_ID")
 
 # === Load tickers from Google Sheets with retry ===
 MAX_RETRIES = 5

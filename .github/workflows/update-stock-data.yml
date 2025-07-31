@@ -31,6 +31,9 @@ jobs:
 
       - name: Run Historical Stocks script
         run: python scripts/HistoricalStocks_gspread.py
+        env:
+          TICKERS_SHEET_ID: ${{ secrets.TICKERS_SHEET_ID }}
+          HISTORICAL_SHEET_ID: ${{ secrets.HISTORICAL_SHEET_ID }}
 
       - name: Upload fallback Historical_Stocks.csv as artifact (if script fallback used it)
         uses: actions/upload-artifact@v4
