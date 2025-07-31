@@ -17,8 +17,8 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json",
 client = gspread.authorize(creds)
 
 # === Google Sheet IDs ===
-#TICKERS_SHEET_ID = "1KCKBgqszZAoJk_RYndRvndP0CwE548LcLJOA6A_PCEQ"
-#HISTORICAL_SHEET_ID = "15AbIBbwNGl6qThiZzxQuY6Dgk5UloEv5pUfIKlvGNDU"
+#TICKERS_SHEET_ID = " "
+#HISTORICAL_SHEET_ID = " "
 
 TICKERS_SHEET_ID = os.environ.get("TICKERS_SHEET_ID")
 HISTORICAL_SHEET_ID = os.environ.get("HISTORICAL_SHEET_ID")
