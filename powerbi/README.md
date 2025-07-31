@@ -10,7 +10,7 @@ This Power BI dashboard provides a comprehensive view of **company-level financi
 
 ### 🏢 Company Insights
 Track key metrics for major public companies across sectors and industries.  
-Examples include: Tesla, NVIDIA, Microsoft, Apple, Amazon, and more.
+Examples include: Tesla, NVIDIA, Microsoft, Apple, Amazon, and more..
 
 **Metrics include:**
 
