@@ -41,6 +41,7 @@ jobs:
           name: Historical_Stocks
           path: Historical_Stocks.csv
           if-no-files-found: warn
+        continue-on-error: true
 
       - name: Ensure authenticated git remote is set
         run: |
@@ -63,6 +64,7 @@ jobs:
           fetch: --tags --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
 
       - name: Clean up secrets
         run: rm service_account.json
