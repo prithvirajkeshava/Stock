@@ -6,20 +6,17 @@ from oauth2client.service_account import ServiceAccountCredentials
 from time import sleep
 import time
 import sys
-import os 
+import os
 
 # === Setup Google Sheets credentials ===
 scope = [
-    "https://spreadsheets.google.com/feeds",    
+    "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
 ]
 creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
 client = gspread.authorize(creds)
 
 # === Google Sheet IDs ===
-#TICKERS_SHEET_ID = " "
-#HISTORICAL_SHEET_ID = " "
-
 TICKERS_SHEET_ID = os.environ.get("TICKERS_SHEET_ID")
 HISTORICAL_SHEET_ID = os.environ.get("HISTORICAL_SHEET_ID")
 
@@ -71,11 +68,13 @@ df.reset_index(inplace=True)
 try:
     sheet = client.open_by_key(HISTORICAL_SHEET_ID).sheet1
     existing_dates_raw = sheet.col_values(1)[1:]  # skip header
-    existing_dates = set(pd.to_datetime(existing_dates_raw).strftime('%Y-%m-%d'))
+    existing_dates = set(pd.to_datetime(existing_dates_raw, dayfirst=True).strftime('%d-%m-%Y'))
 
     df['Date'] = pd.to_datetime(df['Date'])
-    df['Date_str'] = df['Date'].dt.strftime('%Y-%m-%d')
-    df = df[~df['Date_str'].isin(existing_dates)].drop(columns=["Date_str"])
+    df['Date_str'] = df['Date'].dt.strftime('%d-%m-%Y')
+    df = df[~df['Date_str'].isin(existing_dates)]
+    df['Date'] = df['Date_str']  # Overwrite final Date with formatted version
+    df = df.drop(columns=["Date_str"])
 
     if df.empty:
         print("✅ No new data to upload. Skipping upload.")
@@ -84,11 +83,12 @@ try:
         print(f"📈 {len(df)} new rows to upload.")
 except Exception as e:
     print(f"[WARN] Could not read existing sheet dates. Will upload all data. Error: {e}")
+    df['Date'] = pd.to_datetime(df['Date']).dt.strftime('%d-%m-%Y')
 
 # === Chunked upload helper ===
 def update_sheet_in_chunks(sheet, df, chunk_size=500, max_retries=3):
     data = [df.columns.tolist()] + df.astype(str).values.tolist()
-    
+
     sheet_data = sheet.get_all_values()
     if not sheet_data or sheet_data[0] != df.columns.tolist():
         sheet.clear()
